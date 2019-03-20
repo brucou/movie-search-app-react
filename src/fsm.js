@@ -86,24 +86,8 @@ const transitions = [
   {
     from: MOVIE_QUERYING,
     event: SEARCH_RESULTS_RECEIVED,
-    guards: [
-      {
-        predicate: isExpectedMovieResults,
-        to: MOVIE_SELECTION,
-        action: displayMovieSearchResultsScreen
-      },
-      {
-        predicate: isNotExpectedMovieResults,
-        to: MOVIE_QUERYING,
-        action: NO_ACTIONS
-      }
-    ]
-  },
-  {
-    from: MOVIE_QUERYING,
-    event: QUERY_CHANGED,
-    to: MOVIE_QUERYING,
-    action: displayLoadingScreenAndQueryNonEmpty
+    to: MOVIE_SELECTION,
+    action: displayMovieSearchResultsScreen
   },
   {
     from: MOVIE_SELECTION,
@@ -114,24 +98,8 @@ const transitions = [
   {
     from: MOVIE_QUERYING,
     event: SEARCH_ERROR_RECEIVED,
-    guards: [
-      {
-        predicate: isExpectedMovieResults,
-        to: MOVIE_SELECTION_ERROR,
-        action: displayMovieSearchErrorScreen
-      },
-      {
-        predicate: isNotExpectedMovieResults,
-        to: MOVIE_QUERYING,
-        action: NO_ACTIONS
-      }
-    ]
-  },
-  {
-    from: MOVIE_SELECTION_ERROR,
-    event: QUERY_CHANGED,
-    to: MOVIE_QUERYING,
-    action: displayLoadingScreenAndQueryNonEmpty
+    to: MOVIE_SELECTION_ERROR,
+    action: displayMovieSearchErrorScreen
   },
   {
     from: MOVIE_SELECTION,
@@ -150,12 +118,6 @@ const transitions = [
     event: SEARCH_ERROR_MOVIE_RECEIVED,
     to: MOVIE_DETAIL_SELECTION_ERROR,
     action: displayMovieDetailsSearchErrorScreen
-  },
-  {
-    from: MOVIE_DETAIL_SELECTION_ERROR,
-    event: MOVIE_DETAILS_DESELECTED,
-    to: MOVIE_SELECTION,
-    action: displayCurrentMovieSearchResultsScreen
   },
   {
     from: MOVIE_DETAIL_SELECTION,
@@ -418,7 +380,7 @@ const movieSearchFsmDef = {
   states,
   events: Object.values(events),
   transitions,
-  settings: {updateState: applyJSONpatch}
+  updateState: applyJSONpatch
 };
 
 export { movieSearchFsmDef };

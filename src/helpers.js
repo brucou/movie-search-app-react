@@ -55,11 +55,11 @@ export const logAndRethrow = function logAndRethrowCurried(debug, errMsg) {
   // TODO : I should also catch errors occuring there and pass it to the debugEmitter
   return function logAndRethrow(e, args) {
     debug &&
-      debug.console &&
-      debug.console.error(`logAndRethrow :> errors`, errMsg, e);
+    debug.console &&
+    debug.console.error(`logAndRethrow :> errors`, errMsg, e);
     debug &&
-      debug.console &&
-      debug.console.error(`logAndRethrow :> args `, args);
+    debug.console &&
+    debug.console.error(`logAndRethrow :> args `, args);
     throw e;
   };
 };
@@ -71,20 +71,15 @@ export function identity(x) {
 export const eventEmitterAdapter = () => {
   const eventEmitter = emitonoff();
   const DUMMY_NAME_SPACE = "_";
-  const _ = DUMMY_NAME_SPACE;
   const subscribers = [];
-  const subscribeFn = function(f) {
-    return subscribers.push(f), eventEmitter.on(_, f);
-  };
 
   return {
     subjectFactory: () => ({
-      next: x => eventEmitter.emit(_, x),
-      complete: () => subscribers.forEach(f => eventEmitter.off(_, f)),
-      subscribe: subscribeFn
+      next: x => eventEmitter.emit(DUMMY_NAME_SPACE, x),
+      complete: () => subscribers.forEach(f => eventEmitter.off(DUMMY_NAME_SPACE, f)),
+      subscribe: ({next: f, error:_, complete: __}) => {
+        return (subscribers.push(f), eventEmitter.on(DUMMY_NAME_SPACE, f))
+      }
     }),
-    // NOTE : Observer is assumed to be always a triple {next, error, complete} even though
-    // for a standard event emitter, there is not really an error channel...
-    subscribe: (observable, observer) => observable.subscribe(observer.next)
   };
 };

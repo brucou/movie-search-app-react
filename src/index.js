@@ -1,3 +1,4 @@
+// cf. https://frontarm.com/demoboard/?id=9afd2d8c-7b0a-46ce-9595-0acc03132eec
 import "./uikit.css";
 import "./index.css";
 import { render } from "react-dom";
@@ -6,13 +7,13 @@ import { createStateMachine, fsmContracts } from "state-transducer";
 import { Machine } from "react-state-driven";
 // import { Machine } from "./Machine";
 import { commandHandlers, effectHandlers, movieSearchFsmDef } from "./fsm";
-import { applyJSONpatch, eventEmitterAdapter } from "./helpers";
+import { eventEmitterAdapter } from "./helpers";
 import { events } from "./properties";
 import { MovieSearch } from "./MovieSearch";
 
-const fsm = createStateMachine(movieSearchFsmDef);
+const fsm = createStateMachine(movieSearchFsmDef, { debug: { console, checkFsmContracts: fsmContracts } });
 
-const options = render(
+render(
   h(
     Machine,
     {
@@ -28,3 +29,4 @@ const options = render(
   ),
   document.getElementById("root")
 );
+// TODO: it enters start, probably now problem is with initial event and the emitter adapter...
