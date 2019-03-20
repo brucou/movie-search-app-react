@@ -114,7 +114,7 @@ const transitions = [
     from: MOVIE_DETAIL_SELECTION,
     event: MOVIE_DETAILS_DESELECTED,
     to: MOVIE_SELECTION,
-    action: displayMovieSearchResultsScreen
+    action: displayCurrentMovieSearchResultsScreen
   },
 ];
 export const commandHandlers = {

@@ -29,4 +29,3 @@ render(
   ),
   document.getElementById("root")
 );
-// TODO: it enters start, probably now problem is with initial event and the emitter adapter...
