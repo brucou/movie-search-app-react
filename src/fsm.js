@@ -1,24 +1,10 @@
-import { INIT_EVENT, INIT_STATE, NO_OUTPUT, NO_STATE_UPDATE } from "state-transducer";
+import { NO_OUTPUT, NO_STATE_UPDATE } from "state-transducer";
 import {
-  COMMAND_MOVIE_DETAILS_SEARCH,
-  COMMAND_MOVIE_SEARCH,
-  COMMAND_RENDER,
-  DISCOVERY_REQUEST,
-  events,
-  MOVIE_DETAIL_QUERYING,
-  MOVIE_DETAIL_SELECTION,
-  MOVIE_DETAIL_SELECTION_ERROR,
-  MOVIE_QUERYING,
-  MOVIE_SELECTION,
-  MOVIE_SELECTION_ERROR,
-  screens as screenIds,
-  START
+  COMMAND_MOVIE_DETAILS_SEARCH, COMMAND_MOVIE_SEARCH, COMMAND_RENDER, DISCOVERY_REQUEST, events, MOVIE_DETAIL_QUERYING,
+  MOVIE_DETAIL_SELECTION, MOVIE_DETAIL_SELECTION_ERROR, MOVIE_QUERYING, MOVIE_SELECTION, MOVIE_SELECTION_ERROR,
+  screens as screenIds, START
 } from "./properties";
-import {
-  makeQuerySlug,
-  runMovieDetailQuery,
-  runMovieSearchQuery
-} from "./helpers";
+import { makeQuerySlug, runMovieDetailQuery, runMovieSearchQuery } from "./helpers";
 import { applyPatch } from "json-patch-es6";
 
 /**
@@ -75,22 +61,64 @@ const {
   SEARCH_RESULTS_WITH_MOVIE_DETAILS_AND_LOADING_SCREEN,
   SEARCH_RESULTS_WITH_MOVIE_DETAILS_ERROR
 } = screenIds;
+
+// { from: INIT_STATE, event: INIT_EVENT, to: START, action: NO_ACTIONS },
 const transitions = [
-  { from: INIT_STATE, event: INIT_EVENT, to: START, action: NO_ACTIONS },
-  { from: START, event: USER_NAVIGATED_TO_APP, to: MOVIE_QUERYING, action: displayLoadingScreenAndQueryDb },
+  {
+    from: START,
+    event: USER_NAVIGATED_TO_APP,
+    to: MOVIE_QUERYING,
+    action: displayLoadingScreenAndQueryDb
+  },
   {
     from: MOVIE_QUERYING,
     event: SEARCH_RESULTS_RECEIVED,
-    to: MOVIE_SELECTION,
-    action: displayMovieSearchResultsScreen
+    guards: [
+      {
+        predicate: isExpectedMovieResults,
+        to: MOVIE_SELECTION,
+        action: displayMovieSearchResultsScreen
+      },
+      {
+        predicate: isNotExpectedMovieResults,
+        to: MOVIE_QUERYING,
+        action: NO_ACTIONS
+      }
+    ]
   },
-  { from: MOVIE_QUERYING, event: QUERY_CHANGED, to: MOVIE_QUERYING, action: displayLoadingScreenAndQueryNonEmpty },
-  { from: MOVIE_SELECTION, event: QUERY_CHANGED, to: MOVIE_QUERYING, action: displayLoadingScreenAndQueryNonEmpty },
+  {
+    from: MOVIE_QUERYING,
+    event: QUERY_CHANGED,
+    to: MOVIE_QUERYING,
+    action: displayLoadingScreenAndQueryNonEmpty
+  },
+  {
+    from: MOVIE_SELECTION,
+    event: QUERY_CHANGED,
+    to: MOVIE_QUERYING,
+    action: displayLoadingScreenAndQueryNonEmpty
+  },
   {
     from: MOVIE_QUERYING,
     event: SEARCH_ERROR_RECEIVED,
-    to: MOVIE_SELECTION_ERROR,
-    action: displayMovieSearchErrorScreen
+    guards: [
+      {
+        predicate: isExpectedMovieResults,
+        to: MOVIE_SELECTION_ERROR,
+        action: displayMovieSearchErrorScreen
+      },
+      {
+        predicate: isNotExpectedMovieResults,
+        to: MOVIE_QUERYING,
+        action: NO_ACTIONS
+      }
+    ]
+  },
+  {
+    from: MOVIE_SELECTION_ERROR,
+    event: QUERY_CHANGED,
+    to: MOVIE_QUERYING,
+    action: displayLoadingScreenAndQueryNonEmpty
   },
   {
     from: MOVIE_SELECTION,
@@ -111,11 +139,17 @@ const transitions = [
     action: displayMovieDetailsSearchErrorScreen
   },
   {
-    from: MOVIE_DETAIL_SELECTION,
+    from: MOVIE_DETAIL_SELECTION_ERROR,
     event: MOVIE_DETAILS_DESELECTED,
     to: MOVIE_SELECTION,
     action: displayCurrentMovieSearchResultsScreen
   },
+  {
+    from: MOVIE_DETAIL_SELECTION,
+    event: MOVIE_DETAILS_DESELECTED,
+    to: MOVIE_SELECTION,
+    action: displayCurrentMovieSearchResultsScreen
+  }
 ];
 export const commandHandlers = {
   [COMMAND_MOVIE_SEARCH]: (next, _query, effectHandlers) => {
