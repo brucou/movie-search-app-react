@@ -1,6 +1,6 @@
-import { NO_OUTPUT, NO_STATE_UPDATE } from "state-transducer";
+import { NO_OUTPUT, NO_STATE_UPDATE } from "kingly";
 import {
-  COMMAND_MOVIE_DETAILS_SEARCH, COMMAND_MOVIE_SEARCH, COMMAND_RENDER, DISCOVERY_REQUEST, events, MOVIE_DETAIL_QUERYING,
+  COMMAND_MOVIE_DETAILS_SEARCH, COMMAND_MOVIE_SEARCH, DISCOVERY_REQUEST, COMMAND_RENDER, events, MOVIE_DETAIL_QUERYING,
   MOVIE_DETAIL_SELECTION, MOVIE_DETAIL_SELECTION_ERROR, MOVIE_QUERYING, MOVIE_SELECTION, MOVIE_SELECTION_ERROR,
   screens as screenIds, START
 } from "./properties";
@@ -22,7 +22,7 @@ export function applyJSONpatch(extendedState, extendedStateUpdateOperations) {
   ).newDocument;
 }
 
-const NO_ACTIONS = () => ({ outputs: NO_OUTPUT, updates: NO_STATE_UPDATE });
+const NO_ACTIONS = () => ({ outputs: [], updates: NO_STATE_UPDATE });
 
 const initialControlState = START;
 const initialExtendedState = {
