@@ -1,31 +1,30 @@
 import "./uikit.css";
 import "./index.css";
 import { render } from "react-dom";
-import h from "react-hyperscript";
+import React from "react";
 import { createStateMachine } from "kingly";
+import { Machine } from "./Machine";
 // import { Machine } from "react-state-driven";
-import { Machine, getEventEmitterAdapter } from "./Machine";
 import { commandHandlers, effectHandlers, movieSearchFsmDef } from "./fsm";
-import { events } from "./properties";
 import { MovieSearch } from "./MovieSearch";
-import {tracer} from "courtesan";
-import emitonoff from "emitonoff";
+// We trace the machine with the devtool
+// cf. https://brucou.github.io/documentation/v1/tooling/devtool.html
+import { tracer } from "courtesan";
 
-const fsm = createStateMachine(movieSearchFsmDef, {debug:{console},devTool:{tracer}});
+const fsm = createStateMachine(movieSearchFsmDef, { devTool: { tracer } });
 
 render(
-  h(
-    Machine,
-    {
-      fsm: fsm,
-      eventHandler: getEventEmitterAdapter(emitonoff),
-      preprocessor: x => x,
-      commandHandlers,
-      effectHandlers,
-      renderWith: MovieSearch,
-      options: { debug: {console}, initialEvent: { [events.USER_NAVIGATED_TO_APP]: void 0 } }
-    },
-    []
-  ),
+  <Machine
+    fsm={fsm}
+    // `eventHandler` is optional and default to
+    // a minimal (300B), synchronous event emitter (emitonoff)
+    // eventHandler={getEventEmitterAdapter(emitonoff)}
+    // preprocessor={x => x} // optional, defaults to x => x
+    commandHandlers={commandHandlers} // mandatory
+    // effectHandlers={effectHandlers} // optional, defaults to {}
+    renderWith={MovieSearch}
+    // `initialEvent` is optional and default to MOUNTED (exported by Machine)
+    // options={{ initialEvent: { [events.USER_NAVIGATED_TO_APP]: void 0 } }}
+  />,
   document.getElementById("root")
 );

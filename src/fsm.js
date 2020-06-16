@@ -1,11 +1,12 @@
-import { NO_OUTPUT, NO_STATE_UPDATE } from "kingly";
+import {NO_OUTPUT, NO_STATE_UPDATE} from "kingly";
 import {
   COMMAND_MOVIE_DETAILS_SEARCH, COMMAND_MOVIE_SEARCH, DISCOVERY_REQUEST, COMMAND_RENDER, events, MOVIE_DETAIL_QUERYING,
   MOVIE_DETAIL_SELECTION, MOVIE_DETAIL_SELECTION_ERROR, MOVIE_QUERYING, MOVIE_SELECTION, MOVIE_SELECTION_ERROR,
   screens as screenIds, START
 } from "./properties";
-import { makeQuerySlug, runMovieDetailQuery, runMovieSearchQuery } from "./helpers";
-import { applyPatch } from "json-patch-es6";
+import {makeQuerySlug, runMovieDetailQuery, runMovieSearchQuery} from "./helpers";
+import {applyPatch} from "json-patch-es6";
+import {MOUNTED} from "./Machine"
 
 /**
  *
@@ -22,7 +23,7 @@ export function applyJSONpatch(extendedState, extendedStateUpdateOperations) {
   ).newDocument;
 }
 
-const NO_ACTIONS = () => ({ outputs: [], updates: NO_STATE_UPDATE });
+const NO_ACTIONS = () => ({outputs: [], updates: NO_STATE_UPDATE});
 
 const initialControlState = START;
 const initialExtendedState = {
@@ -44,7 +45,6 @@ const states = {
 };
 const {
   SEARCH_ERROR_MOVIE_RECEIVED,
-  USER_NAVIGATED_TO_APP,
   QUERY_CHANGED,
   MOVIE_DETAILS_DESELECTED,
   MOVIE_SELECTED,
@@ -66,7 +66,7 @@ const {
 const transitions = [
   {
     from: START,
-    event: USER_NAVIGATED_TO_APP,
+    event: MOUNTED,
     to: MOVIE_QUERYING,
     action: displayLoadingScreenAndQueryDb
   },
@@ -155,8 +155,7 @@ export const commandHandlers = {
   [COMMAND_MOVIE_SEARCH]: (next, _query, effectHandlers) => {
     const querySlug = _query === "" ? DISCOVERY_REQUEST : makeQuerySlug(_query);
 
-    effectHandlers
-      .runMovieSearchQuery(querySlug)
+    runMovieSearchQuery(querySlug)
       .then(data => {
         next({
           [SEARCH_RESULTS_RECEIVED]: {
@@ -166,16 +165,15 @@ export const commandHandlers = {
         });
       })
       .catch(error => {
-        next({ [SEARCH_ERROR_RECEIVED]: { query: _query } });
+        next({[SEARCH_ERROR_RECEIVED]: {query: _query}});
       });
   },
   [COMMAND_MOVIE_DETAILS_SEARCH]: (next, movieId, effectHandlers) => {
-    effectHandlers
-      .runMovieDetailQuery(movieId)
+    runMovieDetailQuery(movieId)
       .then(([details, cast]) =>
-        next({ [SEARCH_RESULTS_MOVIE_RECEIVED]: [details, cast] })
+        next({[SEARCH_RESULTS_MOVIE_RECEIVED]: [details, cast]})
       )
-      .catch(err => next({ [SEARCH_ERROR_MOVIE_RECEIVED]: err }));
+      .catch(err => next({[SEARCH_ERROR_MOVIE_RECEIVED]: err}));
   }
 };
 
@@ -191,7 +189,7 @@ function displayLoadingScreenAndQueryDb(extendedState, eventData, fsmSettings) {
   };
   const renderCommand = {
     command: COMMAND_RENDER,
-    params: { screen: LOADING_SCREEN }
+    params: {screen: LOADING_SCREEN}
   };
   return {
     updates: NO_STATE_UPDATE,
@@ -225,8 +223,8 @@ function displayLoadingScreenAndQueryNonEmpty(
   };
   return {
     updates: [
-      { op: "add", path: "/queryFieldHasChanged", value: true },
-      { op: "add", path: "/movieQuery", value: query }
+      {op: "add", path: "/queryFieldHasChanged", value: true},
+      {op: "add", path: "/movieQuery", value: query}
     ],
     outputs: [renderCommand, searchCommand]
   };
@@ -238,7 +236,7 @@ function displayMovieSearchResultsScreen(
   fsmSettings
 ) {
   const searchResults = eventData;
-  const { results, query } = searchResults;
+  const {results, query} = searchResults;
   const renderCommand = {
     command: COMMAND_RENDER,
     params: {
@@ -249,7 +247,7 @@ function displayMovieSearchResultsScreen(
   };
 
   return {
-    updates: [{ op: "add", path: "/results", value: results }],
+    updates: [{op: "add", path: "/results", value: results}],
     outputs: [renderCommand]
   };
 }
@@ -259,7 +257,7 @@ function displayCurrentMovieSearchResultsScreen(
   eventData,
   fsmSettings
 ) {
-  const { movieQuery, results } = extendedState;
+  const {movieQuery, results} = extendedState;
   const renderCommand = {
     command: COMMAND_RENDER,
     params: {
@@ -301,9 +299,9 @@ function displayDetailsLoadingScreenAndQueryDetailsDb(
   eventData,
   fsmSettings
 ) {
-  const { movie } = eventData;
+  const {movie} = eventData;
   const movieId = movie.id;
-  const { movieQuery, results } = extendedState;
+  const {movieQuery, results} = extendedState;
 
   const searchCommand = {
     command: COMMAND_MOVIE_DETAILS_SEARCH,
@@ -320,7 +318,7 @@ function displayDetailsLoadingScreenAndQueryDetailsDb(
   };
 
   return {
-    updates: [{ op: "add", path: "/movieTitle", value: movie.title }],
+    updates: [{op: "add", path: "/movieTitle", value: movie.title}],
     outputs: [renderCommand, searchCommand]
   };
 }
@@ -352,8 +350,8 @@ function displayMovieDetailsSearchResultsScreen(
 
   return {
     updates: [
-      { op: "add", path: "/movieDetails", value: movieDetails },
-      { op: "add", path: "/cast", value: cast }
+      {op: "add", path: "/movieDetails", value: movieDetails},
+      {op: "add", path: "/cast", value: cast}
     ],
     outputs: [renderCommand]
   };
@@ -389,8 +387,8 @@ function displayMovieDetailsSearchErrorScreen(
 
 // Guards
 function isExpectedMovieResults(extendedState, eventData, settings) {
-  const { query: fetched } = eventData;
-  const { movieQuery: expected } = extendedState;
+  const {query: fetched} = eventData;
+  const {movieQuery: expected} = extendedState;
   return fetched === expected;
 }
 
@@ -407,4 +405,4 @@ const movieSearchFsmDef = {
   updateState: applyJSONpatch
 };
 
-export { movieSearchFsmDef };
+export {movieSearchFsmDef};
